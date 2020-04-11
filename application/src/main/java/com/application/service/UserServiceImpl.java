@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.application.entity.User;
+import com.application.model.ChangePasswordForm;
 import com.application.repository.UserRepository;
 
 /**
@@ -65,8 +66,32 @@ public class UserServiceImpl implements UserService {
 		mapUser(user, userFound);
 		return repository.save(userFound);
 	}
-	
-	
+
+	@Override
+	public void deleteUser(Long id) throws Exception {
+		User userFound = findById(id);
+		repository.delete(userFound);
+	}
+
+	@Override
+	public User changePassword(ChangePasswordForm form) throws Exception {
+		User userFound = repository.findById(form.getId())
+				.orElseThrow(() -> new Exception("UsernotFound in ChangePassword -"+this.getClass().getName()));
+		
+		if( form.getActual().equals(userFound.getPassword())) {
+			throw new Exception("Password actual Incorrecto.");
+		}
+		
+		if ( form.getActual().equals(form.getNuevo())) {
+			throw new Exception("Password generado debe ser diferente al existente");
+		}
+		
+		if( !form.getNuevo().equals(form.getConfirmar())) {
+			throw new Exception("Password generado y Password de confirmación no coinciden!");
+		}		
+		userFound.setPassword(form.getNuevo());
+		return repository.save(userFound);
+	}
 	
 	/**
 	 * Method clone User but not password
@@ -79,12 +104,6 @@ public class UserServiceImpl implements UserService {
 		to.setLastName(from.getLastName());
 		to.setEmail(from.getEmail());
 		to.setRoles(from.getRoles());
-	}
-
-	@Override
-	public void deleteUser(Long id) throws Exception {
-		User userFound = findById(id);
-		repository.delete(userFound);
 	}
 
 }

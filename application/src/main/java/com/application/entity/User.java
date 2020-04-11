@@ -60,7 +60,6 @@ public class User implements Serializable {
 	private String username;
 	
 	@Column
-	@NotBlank(message = "No puede estar vacio")
 	private String password;
 
 	@Transient

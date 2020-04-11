@@ -19,11 +19,15 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.JoinColumn;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 public class User implements Serializable {
 	/**
 	 * 

@@ -15,6 +15,10 @@ import javax.persistence.Id;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Transient;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.JoinColumn;
@@ -27,19 +31,32 @@ public class User implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO, generator="native")
-	@GenericGenerator(name="native",strategy="native")	
+	@GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
+	@GenericGenerator(name = "native", strategy = "native")
 	private Long id;
 
 	@Column
+	@NotBlank(message = "No puede estar vacio")
+	@Size(max = 20, message = "Ha Excedido la Cantidad de Caracteres Permitidos")
 	private String firstName;
+	
 	@Column
+	@NotBlank(message = "No puede estar vacio")
+	@Size(max = 20, message = "Ha Excedido la Cantidad de Caracteres Permitidos")
 	private String lastName;
+	
 	@Column(unique = true)
+	@NotBlank(message = "No puede estar vacio")
+	@Email(message = "Mal formado email")
 	private String email;
+	
 	@Column(unique = true)
+	@NotBlank(message = "No puede estar vacio")
+	@Size(min = 3, max = 20, message = "UserName de 3 a 20 caracteres permitidos")
 	private String username;
+	
 	@Column
+	@NotBlank(message = "No puede estar vacio")
 	private String password;
 
 	@Transient

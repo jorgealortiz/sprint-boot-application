@@ -1,12 +1,17 @@
 package com.application.controller;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import com.application.entity.User;
-import com.application.repository.RoleRepository;
 import com.application.service.RoleService;
 import com.application.service.UserService;
 
@@ -25,11 +30,30 @@ public class userController {
 	
 	@GetMapping ("/userForm")
 	public String userForm(Model model) {
+		model.addAttribute("listTab", "active");
 		model.addAttribute("userForm",  new User());
 		model.addAttribute("userList", userService.getAllUsers());
 		model.addAttribute("roles", roleService.getAllRoles());
-		model.addAttribute("listTab", "active");
 		return "user-form/user-view";
 	}
 
+	@PostMapping ("/userForm")
+	public String createUser (@Valid @ModelAttribute("userForm") User user, BindingResult result, ModelMap model) {
+		if(result.hasErrors()) {
+			model.addAttribute("formTab", "active");
+			model.addAttribute("userForm", user);
+		}else {
+			try {
+				userService.createUser(user);
+				model.addAttribute("listTab", "active");
+				model.addAttribute("userForm", new User());
+			} catch (Exception e) {
+				model.addAttribute("formErrorMessage",  e.getMessage());
+				model.addAttribute("formTab", "active");
+			}
+		}
+		model.addAttribute("userList", userService.getAllUsers());
+		model.addAttribute("roles", roleService.getAllRoles());		
+		return "user-form/user-view";
+	}
 }

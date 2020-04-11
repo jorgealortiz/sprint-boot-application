@@ -16,6 +16,8 @@ import com.application.entity.User;
 import com.application.service.RoleService;
 import com.application.service.UserService;
 
+import net.bytebuddy.implementation.bytecode.Throw;
+
 @Controller
 public class userController {
 	
@@ -96,6 +98,16 @@ public class userController {
 	@GetMapping("/userForm/cancel")
 	public String cancelEditUser(ModelMap model) {
 		return "redirect:/userForm";
+	}
+	
+	@GetMapping("/deleteUser/{id}")
+	public String deleteUser(Model model, @PathVariable(name="id") Long id) {
+		try {
+			userService.deleteUser(id);
+		} catch (Exception e) {
+			model.addAttribute("listErrorMessage", e.getMessage());
+		}
+		return userForm(model);
 	}
 	
 }

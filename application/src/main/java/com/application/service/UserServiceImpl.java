@@ -66,6 +66,8 @@ public class UserServiceImpl implements UserService {
 		return repository.save(userFound);
 	}
 	
+	
+	
 	/**
 	 * Method clone User but not password
 	 * @param from
@@ -77,6 +79,12 @@ public class UserServiceImpl implements UserService {
 		to.setLastName(from.getLastName());
 		to.setEmail(from.getEmail());
 		to.setRoles(from.getRoles());
+	}
+
+	@Override
+	public void deleteUser(Long id) throws Exception {
+		User userFound = findById(id);
+		repository.delete(userFound);
 	}
 
 }

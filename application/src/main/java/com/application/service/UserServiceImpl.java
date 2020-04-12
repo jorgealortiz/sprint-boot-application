@@ -3,6 +3,9 @@ package com.application.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.application.entity.User;
@@ -15,6 +18,9 @@ import com.application.repository.UserRepository;
  */
 @Service
 public class UserServiceImpl implements UserService {
+	
+	@Autowired
+	BCryptPasswordEncoder bCryptPasswordEncoder;
 
 	@Autowired
 	private UserRepository repository;
@@ -76,25 +82,42 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User changePassword(ChangePasswordForm form) throws Exception {
 		User userFound = repository.findById(form.getId())
-				.orElseThrow(() -> new Exception("UsernotFound in ChangePassword -"+this.getClass().getName()));
-		
-		if( form.getActual().equals(userFound.getPassword())) {
+				.orElseThrow(() -> new Exception("UsernotFound in ChangePassword -" + this.getClass().getName()));
+
+		if (!isLoggedUserADMIN() && form.getActual().equals(userFound.getPassword())) {
 			throw new Exception("Password actual Incorrecto.");
 		}
-		
-		if ( form.getActual().equals(form.getNuevo())) {
+
+		if (form.getActual().equals(form.getNuevo())) {
 			throw new Exception("Password generado debe ser diferente al existente");
 		}
-		
-		if( !form.getNuevo().equals(form.getConfirmar())) {
+
+		if (!form.getNuevo().equals(form.getConfirmar())) {
 			throw new Exception("Password generado y Password de confirmación no coinciden!");
-		}		
-		userFound.setPassword(form.getNuevo());
+		}
+		userFound.setPassword(bCryptPasswordEncoder.encode((form.getNuevo())));
 		return repository.save(userFound);
 	}
-	
+
+	public boolean isLoggedUserADMIN() {
+		return loggedUserHasRole("ROLE_ADMIN");
+	}
+
+	public boolean loggedUserHasRole(String role) {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		UserDetails loggedUser = null;
+		Object roles = null;
+		if (principal instanceof UserDetails) {
+			loggedUser = (UserDetails) principal;
+			roles = loggedUser.getAuthorities().stream().filter(x -> role.equals(x.getAuthority())).findFirst()
+					.orElse(null); // loggedUser = null;
+		}
+		return roles != null ? true : false;
+	}
+
 	/**
 	 * Method clone User but not password
+	 * 
 	 * @param from
 	 * @param to
 	 */

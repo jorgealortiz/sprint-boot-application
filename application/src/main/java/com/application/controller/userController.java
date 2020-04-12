@@ -30,7 +30,7 @@ public class userController {
 	@Autowired
 	RoleService roleService;
 	
-	@GetMapping ("/")
+	@GetMapping ({"/", "/login"}) // login para implmentar la interfaz webSecurity de Spring
 	public String index() {
 		return "index";
 	}

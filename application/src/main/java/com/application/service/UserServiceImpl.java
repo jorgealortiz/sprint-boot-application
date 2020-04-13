@@ -3,12 +3,14 @@ package com.application.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.application.entity.User;
+import com.application.exception.UsernameOrIdNotFoundException;
 import com.application.model.ChangePasswordForm;
 import com.application.repository.UserRepository;
 
@@ -56,25 +58,29 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User createUser(User user) throws Exception {
 		if (checkUsernameAvailable(user) && checkEmailAvailable(user) && checkPasswordvalid(user)) {
+			String encodePass = bCryptPasswordEncoder.encode((user.getPassword()));
+			user.setPassword(encodePass);
 			user = repository.save(user);
 		}
 		return user;
 	}
 
 	@Override
-	public User findById(Long id) throws Exception {
-		return repository.findById(id).orElseThrow(() -> new Exception("Usuario no existe"));
+	public User findById(Long id) throws  UsernameOrIdNotFoundException {
+		return repository.findById(id).orElseThrow(() -> new UsernameOrIdNotFoundException("Usuario no existe"));
 	}
 
 	@Override
-	public User updateUser(User user) throws Exception {
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
+	public User updateUser(User user) throws UsernameOrIdNotFoundException {
 		User userFound = findById(user.getId());
 		mapUser(user, userFound);
 		return repository.save(userFound);
 	}
 
 	@Override
-	public void deleteUser(Long id) throws Exception {
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+	public void deleteUser(Long id) throws UsernameOrIdNotFoundException {
 		User userFound = findById(id);
 		repository.delete(userFound);
 	}
@@ -95,7 +101,9 @@ public class UserServiceImpl implements UserService {
 		if (!form.getNuevo().equals(form.getConfirmar())) {
 			throw new Exception("Password generado y Password de confirmación no coinciden!");
 		}
-		userFound.setPassword(bCryptPasswordEncoder.encode((form.getNuevo())));
+		
+		String encodePass = bCryptPasswordEncoder.encode((form.getNuevo()));
+		userFound.setPassword(encodePass);
 		return repository.save(userFound);
 	}
 
